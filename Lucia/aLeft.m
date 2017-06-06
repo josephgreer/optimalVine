@@ -1,8 +1,15 @@
-function aL = aLeft(state, params, value)
+function aL = aLeft(params, state, coordinate, edge, value)
 
-% can't go left if x = 0
-if intersect(state, params.nGridPoints^2-params.nGridPoints+1:params.nGridPoints^2)
+r = wrapTo2Pi(coordinate(3)-params.radStep);
+h = params.actuatorSpacing;
+xStep = h*sin(r);
+yStep = h*cos(r);
+x = coordinate(1)+xStep;
+y = coordinate(2)+yStep;
+out = workspaceOut(params, [x,y]);
+if edge && out
     aL = value(state);
 else
-    aL = value(state+params.nGridPoints);
+    next_state = StateToLinear(params, [x,y,r]);
+    aL = value(next_state);
 end

@@ -3,36 +3,35 @@ clear; close all;
 %% INITIALIZATIONS
 
 params = initParams();
-NUM_STATES = params.nGridPoints^2; % discretized by x,y coordinates
+% discretized by x, y, theta
+NUM_STATES = params.nGridPoints^2*params.nRadPoints;
 TOLERANCE = 0.01;
-pause_time = 0.1;
-display_started = 1;
 
 %% DESTINATION - desired final state
 
-x_f = 9.0; y_f = 8.0; r_f = 0.0;
-destination = StateToLinear_edit(params, [x_f,y_f,r_f]);
+% changed definition of r = 0 to mean advancing in the positive y direction
+x_f = 5.0; y_f = 10.0; r_f = 0.0;
+destination = StateToLinear(params, [x_f,y_f,r_f]);
 
 %% INITIAL POSITION
 
-x = 5.0; y = 0.0; r = pi/2;
+x = 5.0; y = 0.0; r = 0.0;
 % state is the number given to this state
-state = StateToLinear_edit(params, [x,y,r]);
-
-%% INITIALIZE DISPLAY **************************************** FIX THIS
-
-if display_started==1
-    vine([x_f,y_f,r_f], [x,y,r], params, pause_time);
-end
+state = StateToLinear(params, [x,y,r]);
+save states.mat state destination
 
 %% INITIALIZE MDP VARIABLES
 
+% initialized with no transitions/rewards observed
 value = zeros(NUM_STATES,1);
 value_prime = zeros(NUM_STATES,1);
-reward = -3*ones(NUM_STATES,1);
+reward = zeros(NUM_STATES,1);
 policy = ones(NUM_STATES,1);
-reward(destination) = 100;
-policy(destination) = '*';
+% if position of state is inside target, probability = 1
+for i=1:params.nRadPoints
+    reward(destination+(i-1)*params.nGridPoints^2) = 1;
+    policy(destination+(i-1)*params.nGridPoints^2) = '*';
+end
 
 N = 10000;
 n = 0;
@@ -46,7 +45,7 @@ while 1
     delta = 0;
     
     for i=1:NUM_STATES
-        [value_prime, policy] = value_update(i, params, reward, value, value_prime, policy);
+        [value_prime, policy] = valueUpdate(params, i, reward, value, value_prime, policy);
         diff = abs(value_prime(i)-value(i));
         if diff > delta
             delta = diff;
@@ -58,6 +57,7 @@ while 1
     end
     
 end
-
-%% DISPLAY ********************************** FIX THIS
+% optimal policy for each state saved into DP table
 charPolicy = char(policy);
+save charPolicy.mat charPolicy
+save value.mat value
