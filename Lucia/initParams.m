@@ -12,7 +12,7 @@ params.nRadPoints = round(2*pi/params.radStep+1);
 
 params.successRad = 0.75; % success radius
 
-params.pSuccess = 0.9;
+params.pSuccess = 0.75;
 pFail = (1-params.pSuccess)/2;
 % symmetric
 params.Pturns = [params.pSuccess pFail pFail; pFail params.pSuccess pFail; pFail pFail params.pSuccess];
