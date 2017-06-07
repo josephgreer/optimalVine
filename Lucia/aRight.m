@@ -1,4 +1,4 @@
-function aR = aRight(params, state, coordinate, edge, value)
+function aR = aRight(params, state, coordinate, edge, obstacle, value)
 
 r = wrapTo2Pi(coordinate(3)+params.radStep);
 h = params.actuatorSpacing;
@@ -7,7 +7,8 @@ yStep = h*cos(r);
 x = coordinate(1)+xStep;
 y = coordinate(2)+yStep;
 out = workspaceOut(params, [x,y]);
-if edge && out
+obst = workspaceObst(coordinate, obstacle);
+if (edge && out) || obst
     aR = value(state);
 else
     next_state = StateToLinear(params, [x,y,r]);

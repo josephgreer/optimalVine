@@ -13,12 +13,18 @@ TOLERANCE = 0.01;
 x_f = 5.0; y_f = 10.0; r_f = 0.0;
 destination = StateToLinear(params, [x_f,y_f,r_f]);
 
+%% OBSTACLE
+
+% define obstacle boundary
+x_o = [4 5 6 7 4]; y_o = [4 6 5 4 4];
+obstacle = [x_o' y_o'];
+
 %% INITIAL POSITION
 
 x = 5.0; y = 0.0; r = 0.0;
 % state is the number given to this state
 state = StateToLinear(params, [x,y,r]);
-save states.mat state destination
+save states.mat state destination obstacle
 
 %% INITIALIZE MDP VARIABLES
 
@@ -38,14 +44,14 @@ n = 0;
 
 %% FIND OPTIMAL POLICY
 
-while 1
+while true
     
     value = value_prime;
     n = n+1;
     delta = 0;
     
     for i=1:NUM_STATES
-        [value_prime, policy] = valueUpdate(params, i, reward, value, value_prime, policy);
+        [value_prime, policy] = valueUpdate(params, i, reward, value, value_prime, policy, obstacle);
         diff = abs(value_prime(i)-value(i));
         if diff > delta
             delta = diff;

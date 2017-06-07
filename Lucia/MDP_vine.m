@@ -1,7 +1,5 @@
 clear; close all;
 
-%% INITIALIZATIONS
-
 params = initParams();
 NUM_STATES = params.nGridPoints^2*params.nRadPoints;
 pause_time = 0.5;
@@ -10,10 +8,8 @@ load('charPolicy.mat');
 destination = LinearToState(params, destination);
 actions = ['S','L','R'];
 
-x = 5.0; y = 0.0; r = 0;
+x = 5.0; y = 2.0; r = 0;
 state = StateToLinear(params, [x,y,r]);
-
-%% DISPLAY
 
 set(gcf,'DoubleBuffer','on');
 drawnow; hold on; grid on;
@@ -24,24 +20,46 @@ rad_y = destination(2)+params.successRad*sin(angle);
 plot(rad_x,rad_y,'c');
 axis equal;
 axis([0 params.gridWidth 0 params.gridHeight]);
+plot(obstacle(:,1), obstacle(:,2), '-r');
 color = 'g';
 
 for i=1:params.nActuators
     
     coordinate = LinearToState(params, state);
-    plot(coordinate(1), coordinate(2), '-o', 'MarkerEdgeColor','k',...
+    plot(coordinate(1), coordinate(2), 'o', 'MarkerEdgeColor','k',...
         'MarkerSize', 10, 'MarkerFaceColor', color);
     % string = sprintf('plot_%d.png',i);
     % saveas(gcf,string);
     
-    dist = sqrt((coordinate(1)-destination(1))^2+(coordinate(2)-destination(2))^2);
-    if dist<=params.successRad
+    dist = (coordinate(1)-destination(1))^2+(coordinate(2)-destination(2))^2;
+    if dist <= params.successRad^2
         disp('target reached')
         break
     end
     
+    obst = workspaceObst(coordinate, obstacle);
+    if obst
+        disp('collision with obstacle')
+        break
+    end
+    
     opt_policy = charPolicy(state);
-    if params.pSuccess>=rand
+    if opt_policy == 'L'
+        r = wrapTo2Pi(coordinate(3)-params.radStep);
+    elseif opt_policy == 'R'
+        r = wrapTo2Pi(coordinate(3)+params.radStep);
+    elseif opt_policy == 'S'
+        r = coordinate(3);
+    end
+    xStep = params.actuatorSpacing*sin(r);
+    yStep = params.actuatorSpacing*cos(r);
+    x = coordinate(1)+xStep;
+    y = coordinate(2)+yStep;
+    opt_state = StateToLinear(params, [x,y,r]);
+    opt_coordinate = LinearToState(params, opt_state);
+    plot(opt_coordinate(1), opt_coordinate(2), 'bx');
+    
+    if params.pSuccess >= rand
         policy = opt_policy;
         color = 'b';
         a = 'success';
@@ -65,6 +83,10 @@ for i=1:params.nActuators
     y = coordinate(2)+yStep;
     state = StateToLinear(params, [x,y,r]);
     fprintf('%d: %c (%s %c)\n', i, opt_policy, a, policy)
+    
+    if (i==params.nActuators) && (dist>params.successRad^2)
+        disp('failed to reach target')
+    end
     
     pause(pause_time);
 end

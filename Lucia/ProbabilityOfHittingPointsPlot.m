@@ -18,7 +18,7 @@ Psucc = zeros(params.nGridPoints^2,1);
 xs = gridX(1:params.nGridPoints^2).';
 ys = gridY(1:params.nGridPoints^2).';
 
-goodIdxs = find(2.5 < ys);
+goodIdxs = find(-1 < ys);
 
 ii = 1;
 for i=goodIdxs.'
@@ -57,7 +57,7 @@ Psucc = Psucc/max(Psucc);
 xpts = linspace(0,params.gridWidth,params.nGridPoints).';
 ypts = linspace(0,params.gridHeight,params.nGridPoints).';
 surf(xpts,ypts,reshape(Psucc,params.nGridPoints,params.nGridPoints))
-axis([0 10 3 10 0 1])
+axis([0 10 0 10 0 1])
 % imagesc(xpts,ypts,reshape(Psucc,params.nGridPoints,params.nGridPoints));
 xlabel('x');
 ylabel('y');
